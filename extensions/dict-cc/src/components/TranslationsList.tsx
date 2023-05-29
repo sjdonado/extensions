@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 
 import { Action, ActionPanel, Icon, List, showToast, Clipboard } from "@raycast/api";
 
-import translate, { Languages, Translations } from "dictcc";
-import { createInputFromSearchTerm, getListSubtitle, joinStringsWithDelimiter, playAudio } from "../utils";
+import translate, { Translations } from "dictcc";
+import { getListSubtitle, joinStringsWithDelimiter, playAudio, getDirectionTitles } from "../utils";
+
+import { Direction, getPreferences } from "../preferences";
 
 import { ListWithEmptyView } from "./ListWithEmptyView";
 
@@ -11,22 +13,25 @@ interface ITranslationsListProps {
   isSearchFromClipboard?: boolean;
 }
 
+const { sourceLanguage, targetLanguage } = getPreferences();
+const directionTitles = getDirectionTitles(sourceLanguage, targetLanguage);
+
 export function TranslationsList({ isSearchFromClipboard }: ITranslationsListProps) {
+  const [direction, setDirection] = useState<Direction>();
+  const [loading, setLoading] = useState(false);
+
   const [translations, setTranslations] = useState<Translations[] | undefined>();
   const [url, setUrl] = useState<string | undefined>();
-  const [languages, setLanguages] = useState<[/* source */ Languages, /* target */ Languages] | undefined>();
-  const [loading, setLoading] = useState(false);
 
   const [searchText, setSearchText] = useState("");
 
   const fetchTranslations = useCallback(
-    async (searchTerm: string) => {
-      setSearchText(searchTerm);
+    async (term: string) => {
+      setSearchText(term);
       setLoading(true);
 
       try {
-        const input = createInputFromSearchTerm(searchTerm);
-        const { data, error, url } = await translate(input);
+        const { data, error, url } = await translate({ sourceLanguage, targetLanguage, term });
 
         if (error) {
           throw error;
@@ -34,7 +39,6 @@ export function TranslationsList({ isSearchFromClipboard }: ITranslationsListPro
 
         setTranslations(data);
         setUrl(url);
-        setLanguages([input.sourceLanguage, input.targetLanguage]);
       } catch (error) {
         if (error instanceof Error) {
           showToast({
@@ -46,7 +50,7 @@ export function TranslationsList({ isSearchFromClipboard }: ITranslationsListPro
 
       setLoading(false);
     },
-    [setTranslations, setUrl, setLanguages, setLoading]
+    [setTranslations, setUrl, setLoading]
   );
 
   useEffect(() => {
@@ -67,12 +71,24 @@ export function TranslationsList({ isSearchFromClipboard }: ITranslationsListPro
       searchText={searchText}
       onSearchTextChange={(text) => fetchTranslations(text)}
       navigationTitle="Search dict.cc"
-      searchBarPlaceholder="Search term (e.g. 'en de Home', or 'Home')"
+      searchBarPlaceholder="Search term (e.g. 'Haus')"
+      searchBarAccessory={
+        <List.Dropdown
+          tooltip="Search direction"
+          defaultValue={Direction.LTR}
+          storeValue
+          onChange={(newValue) => setDirection(newValue as Direction)}
+        >
+          {Object.entries(Direction).map(([, value]) => (
+            <List.Dropdown.Item key={value} title={directionTitles[value]} value={value} />
+          ))}
+        </List.Dropdown>
+      }
       throttle
     >
       <ListWithEmptyView loading={loading} showNoResultsFound={!!searchText.length} />
 
-      <List.Section title="Results" subtitle={getListSubtitle(loading, languages, translations?.length)}>
+      <List.Section title="Results" subtitle={getListSubtitle(loading, translations?.length)}>
         {translations?.map((translation, index) => (
           <List.Item
             key={index}
