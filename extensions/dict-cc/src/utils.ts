@@ -4,20 +4,15 @@ import * as https from "https";
 import { temporaryFile } from "tempy";
 import * as sound from "sound-play";
 
-import { Direction, SUPPORTED_LANGUAGES } from "./preferences";
+import { Direction, Languages } from "dictcc";
 
-import { Languages } from "dictcc";
+import { SUPPORTED_LANGUAGES } from "./preferences";
 
 const TEMP_FILE_PATH = temporaryFile({ extension: "mp3" });
 
-export const getListSubtitle = (loading: boolean, totalCount = 0) => {
-  return loading ? "Loading..." : `${totalCount.toString()} results`;
+export const getLanguageTitle = (language: Languages) => {
+  return SUPPORTED_LANGUAGES[language as keyof typeof SUPPORTED_LANGUAGES];
 };
-
-export const joinStringsWithDelimiter: (values: (string | null | undefined)[], delimiter?: string) => string = (
-  values,
-  delimiter = ", "
-): string => (values ? values.filter(Boolean).join(delimiter) : "");
 
 export const getDirectionTitles = (sourceLanguage: Languages, targetLanguage: Languages) => {
   const sourceLanguageKey = sourceLanguage as keyof typeof SUPPORTED_LANGUAGES;

@@ -2,11 +2,6 @@ import { getPreferenceValues } from "@raycast/api";
 
 import { Languages } from "dictcc";
 
-export enum Direction {
-  LTR = "1",
-  RTL = "-1",
-}
-
 export const getPreferences = () =>
   getPreferenceValues<{
     sourceLanguage: Languages;
