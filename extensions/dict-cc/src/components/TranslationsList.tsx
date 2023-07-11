@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 
-import { Action, ActionPanel, Icon, List, showToast, Clipboard } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, showToast, Clipboard, Cache } from "@raycast/api";
 
 import translate, { Inflections, Translations, Direction } from "dictcc";
 import { playAudio, getDirectionTitles, getLanguageTitle } from "../utils";
@@ -17,6 +17,8 @@ const { sourceLanguage, targetLanguage } = getPreferences();
 
 const directionTitles = getDirectionTitles(sourceLanguage, targetLanguage);
 const defaultDirection = Direction.LTR;
+
+const cache = new Cache();
 
 export function TranslationsList({ isSearchFromClipboard }: ITranslationsListProps) {
   const [direction, setDirection] = useState<Direction>(defaultDirection);
@@ -35,6 +37,18 @@ export function TranslationsList({ isSearchFromClipboard }: ITranslationsListPro
       setDirection(direction);
       setLoading(true);
 
+      const cacheKey = `translations_${term}_${direction}`;
+      const cachedTranslations = JSON.parse(cache.get(cacheKey) ?? "{}");
+
+      if (cachedTranslations.data) {
+        setTranslations(cachedTranslations.data.translations);
+        setInflections(cachedTranslations.data.inflections);
+        setUrl(cachedTranslations.url);
+        setLoading(false);
+
+        return;
+      }
+
       try {
         const { data, error, url } = await translate({
           sourceLanguage,
@@ -50,6 +64,14 @@ export function TranslationsList({ isSearchFromClipboard }: ITranslationsListPro
         setTranslations(data?.translations);
         setInflections(data?.inflections);
         setUrl(url);
+
+        cache.set(
+          cacheKey,
+          JSON.stringify({
+            data,
+            url,
+          })
+        );
       } catch (error) {
         if (error instanceof Error) {
           showToast({
