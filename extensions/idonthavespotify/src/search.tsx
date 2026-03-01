@@ -11,7 +11,7 @@ import { cacheLastSearch, getLastSearch } from "./utils/cache";
 import { playAudio, stopAudio } from "./utils/audio";
 import { apiCall, isLinkValid } from "./shared/searchToClipboard";
 
-const searchResultLinksTitles: Record<Adapter, string> = {
+const searchResultLinksTitles: Record<string, string> = {
   [Adapter.YouTube]: "YouTube",
   [Adapter.Deezer]: "Deezer",
   [Adapter.AppleMusic]: "Apple Music",
@@ -146,7 +146,7 @@ export default function Command() {
                 <List.Item
                   key={type}
                   icon={Icon.Link}
-                  title={searchResultLinksTitles[type as Adapter] ?? type}
+                  title={searchResultLinksTitles[type] ?? type}
                   subtitle={url}
                   accessories={[{ icon: isVerified ? Icon.CheckCircle : null }]}
                   actions={

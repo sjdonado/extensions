@@ -38,7 +38,7 @@ export const searchToClipboard = async (adapter: Adapter) => {
 
     const response = await apiCall(clipboardText, adapter);
 
-    const link = response.links.find(({ type }) => (type as Adapter) === adapter)?.url;
+    const link = response.links.find(({ type }) => type === adapter)?.url;
     if (!link) {
       throw new Error("Link not available on this Platform");
     }

@@ -28,7 +28,7 @@ export type SearchMetadata = {
 };
 
 export type SearchResultLink = {
-  type: Adapter;
+  type: string;
   url: string;
   isVerified?: boolean;
 };
