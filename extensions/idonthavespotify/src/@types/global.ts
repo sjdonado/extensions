@@ -5,6 +5,9 @@ export enum Adapter {
   SoundCloud = "soundCloud",
   Deezer = "deezer",
   Tidal = "tidal",
+  Qobuz = "qobuz",
+  Bandcamp = "bandcamp",
+  Pandora = "pandora",
 }
 
 export enum MetadataType {
